@@ -4,8 +4,6 @@
 <!-- markdownlint-disable MD041 -->
 <!-- markdownlint-disable MD033 -->
 
-
-
 # K6 性能测试快速启动项目
 
 一个关于使用 K6 进行性能测试的快速启动介绍性文档。
