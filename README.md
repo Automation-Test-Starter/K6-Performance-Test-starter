@@ -17,7 +17,7 @@ A quick-start introductory document on performance testing with K6.
     - [Docker installation](#docker-installation)
     - [Installation on other systems](#installation-on-other-systems)
     - [Confirming a successful K6 installation](#confirming-a-successful-k6-installation)
-  - [Run the first test script](#run-the-first-test-script)
+  - [First k6 test script](#first-k6-test-script)
     - [Write the first test script](#write-the-first-test-script)
       - [Create a new K6 performance testing project directory and go to](#create-a-new-k6-performance-testing-project-directory-and-go-to)
       - [Create a file named `demo.js` for writing test scripts](#create-a-file-named-demojs-for-writing-test-scripts)
@@ -102,7 +102,7 @@ If the installation was successful, the k6 version information will be displayed
 
 ![ ](https://cdn.jsdelivr.net/gh/naodeng/blogimg@master/uPic/QR8wKb.png)
 
-## Run the first test script
+## First k6 test script
 
 ### Write the first test script
 
