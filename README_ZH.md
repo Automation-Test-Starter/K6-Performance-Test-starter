@@ -577,7 +577,6 @@ export default function () {
 
 ### Thresholds 阈值
 
-
 ## 参考资料
 
 - [K6 官方文档：https://k6.io/docs/](https://k6.io/docs/)
