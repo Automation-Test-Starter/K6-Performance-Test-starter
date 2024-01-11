@@ -34,20 +34,20 @@ A quick-start introductory document on performance testing with K6.
     - [Metrics](#metrics)
       - [#### K6 Built-in Metrics](#-k6-built-in-metrics)
         - [Standard Built-in Metrics](#standard-built-in-metrics)
-        - [HTTP 特定的内置指标](#http-特定的内置指标)
-        - [其他内置指标](#其他内置指标)
-      - [自定义指标](#自定义指标)
-        - [自定义指标 demo 示例](#自定义指标-demo-示例)
-          - [1.从导入 k6/metrics 模块引入 Trend 构造函数](#1从导入-k6metrics-模块引入-trend-构造函数)
-          - [2.在 init 上下文中构造一个新的自定义度量 Trend 对象](#2在-init-上下文中构造一个新的自定义度量-trend-对象)
-          - [3.在脚本中使用 add 方法记录指标测量值](#3在脚本中使用-add-方法记录指标测量值)
-          - [4.demo\_custom\_metrics.js 自定义指标完整代码](#4demo_custom_metricsjs-自定义指标完整代码)
-          - [5.运行 demo\_custom\_metrics.js 并查看自动化趋势指标](#5运行-demo_custom_metricsjs-并查看自动化趋势指标)
-    - [Checks 检查](#checks-检查)
-      - [1.检查 HTTP 响应状态](#1检查-http-响应状态)
-      - [2.检查 HTTP 响应体](#2检查-http-响应体)
-      - [3.添加多个检查](#3添加多个检查)
-    - [Thresholds 阈值](#thresholds-阈值)
+        - [HTTP-specific built-in metrics](#http-specific-built-in-metrics)
+        - [Other built-in metrics](#other-built-in-metrics)
+      - [custom metrics](#custom-metrics)
+        - [custom metrics demo](#custom-metrics-demo)
+          - [1.Import the Trend constructor from the k6/metrics module](#1import-the-trend-constructor-from-the-k6metrics-module)
+          - [2.Constructs a new custom metric Trend object in the init context](#2constructs-a-new-custom-metric-trend-object-in-the-init-context)
+          - [3.Use the add method in a script to record metric measurements](#3use-the-add-method-in-a-script-to-record-metric-measurements)
+          - [4.demo\_custom\_metrics.js Complete code of custom metric](#4demo_custom_metricsjs-complete-code-of-custom-metric)
+          - [5.Run demo\_custom\_metrics.js and view automated trending metrics](#5run-demo_custom_metricsjs-and-view-automated-trending-metrics)
+    - [Checks](#checks)
+      - [1. Check HTTP Response Status](#1-check-http-response-status)
+      - [2. Check HTTP Response Body](#2-check-http-response-body)
+      - [3. Adding Multiple Checks](#3-adding-multiple-checks)
+    - [Thresholds](#thresholds)
   - [References](#references)
 
 ## Introduction of K6
@@ -313,15 +313,15 @@ The HTTP module provided by K6 can handle various HTTP requests and methods. The
 
 | NAME | VALUE |
 | ------- | ------- |
-| batch() | Send multiple HTTP requests in parallel (like e.g. browsers tend to do).|
-| del() | Send an HTTP DELETE request.|
-| get() | Send an HTTP GET request.|
-| head()|  Send an HTTP HEAD request.|
-| options()|  Send an HTTP OPTIONS request.|
-| patch()|  Send an HTTP PATCH request.|
-| post()|  Send an HTTP POST request.|
-| put() | Send an HTTP PUT request.|
-| request() | Send any type of HTTP request.|
+| batch() | makes multiple HTTP requests in parallel (like e.g. browsers tend to do).|
+| del() | makes an HTTP DELETE request.|
+| get() | makes an HTTP GET request.|
+| head()|  makes an HTTP HEAD request.|
+| options()|  makes an HTTP OPTIONS request.|
+| patch()|  makes an HTTP PATCH request.|
+| post()|  makes an HTTP POST request.|
+| put() | makes an HTTP PUT request.|
+| request() | makes any type of HTTP request.|
 
 #### HTTP Request Tags
 
@@ -368,80 +368,76 @@ Every k6 test execution emits both built-in and custom metrics. Each supported p
 
 Regardless of the protocol used in the test, k6 always collects the following metrics:
 
-| 指标名称 | 指标分类 | 指标描述 |
+| Metric Name  | Type | Description |
 | ------- | ------- | -------|
-| vus| Gauge |当前活跃虚拟用户数 |
-| vus_max | Gauge | 最大可能虚拟用户数（VU 资源已预先分配，以避免扩大负载时影响性能）|
-|iterations 迭代|Counter |VU 执行 JS 脚本（default 函数）的总次数。|
-|iteration_duration|Trend|完成一次完整迭代的时间，包括在 setup 和 teardown 中花费的时间。要计算特定场景的迭代函数的持续时间，请尝试此解决方法|
-|dropped_iterations|Counter|由于缺少 VU（对于到达率执行程序）或时间不足（基于迭代的执行程序中的 maxDuration 已过期）而未启动的迭代次数。关于删除迭代|
-|data_received|Counter|接收到的数据量。此示例介绍如何跟踪单个 URL 的数据。|
-|data_sent |Counter|发送的数据量。跟踪单个 URL 的数据以跟踪单个 URL 的数据。|
-|checks|Rate|设置的检查成功率。|
+|vus |Gauge |Current number of active virtual users|
+|vus_max| Gauge| Max possible number of virtual users (VU resources are pre-allocated, to avoid affecting performance when scaling up load )|
+|iterations |Counter| The aggregate number of times the VUs execute the JS script (the default function).|
+|iteration_duration |Trend |The time to complete one full iteration, including time spent in setup and teardown. To calculate the duration of the iteration’s function for the specific scenario, try this workaround|
+|dropped_iterations| Counter| The number of iterations that weren’t started due to lack of VUs (for the arrival-rate executors) or lack of time (expired maxDuration in the iteration-based executors). About dropped iterations|
+|data_received| Counter| The amount of received data. This example covers how to track data for an individual URL.|
+|data_sent |Counter| The amount of data sent. Track data for an individual URL to track data for an individual URL.|
+|checks| Rate |The rate of successful checks.|
 
-> 指标分类分别为：计数器（Counter）、计量器（Gauges）、比率（Rates）、趋势（Trends）
+##### HTTP-specific built-in metrics
 
-##### HTTP 特定的内置指标
+HTTP-specific built-in metrics are generated only when the test makes HTTP requests.Other types of requests, such as WebSocket, do not generate these metrics.
 
-HTTP 特定的内置指标是仅在 HTTP 请求期间才会生成和收集的指标。其他类型的请求（例如 WebSocket）不会生成这些指标。
+> Note: For all http_req_* metrics, the timestamp is emitted at the end of the request. In other words, the timestamp occurs when k6 receives the end of the response body or when the request times out.
 
-> 注意：对于所有 http_req_* 指标，时间戳在请求结束时发出。换句话说，时间戳发生在 k6 收到响应正文末尾或请求超时时。
+The following table lists HTTP-specific built-in metrics:
 
-下表列出了 HTTP 特定的内置指标：
-
-| 指标名称 | 指标分类 | 指标描述 |
+| Metric Name  | Type | Description |
 | ------- | ------- | -------|
-|http_reqs|Counter|k6 总共生成了多少个 HTTP 请求。|
-|http_req_blocked|Trend|在发起请求之前阻塞（等待空闲 TCP 连接槽）所花费的时间。`float`类型|
-|http_req_connecting|Trend |与远程主机建立 TCP 连接所花费的时间。`float`类型|
-|http_req_tls_handshaking|Trend|与远程主机握手 TLS 会话所花费的时间|
-|http_req_sending|Trend|向远程主机发送数据所花费的时间。`float`类型|
-|http_req_waiting|Trend|等待远程主机响应所花费的时间（也称为“第一个字节的时间”或“TTFB”）。`float`类型|
-|http_req_receiving|Trend|从远程主机接收响应数据所花费的时间。`float`类型|
-|http_req_duration|Trend|请求的总时间。它等于 http_req_sending + http_req_waiting + http_req_receiving（即远程服务器处理请求和响应所需的时间，没有初始 DNS 查找/连接时间）。`float`类型|
-|http_req_failed|Rate|根据 setResponseCallback 的失败请求率。|
+|http_reqs |Counter| How many total HTTP requests k6 generated.|
+|http_req_blocked |Trend| Time spent blocked (waiting for a free TCP connection slot) before initiating the request. float|
+|http_req_connecting |Trend |Time spent establishing TCP connection to the remote host. float|
+|http_req_tls_handshaking| Trend| Time spent handshaking TLS session with remote host|
+|http_req_sending |Trend| Time spent sending data to the remote host. float|
+|http_req_waiting |Trend| Time spent waiting for response from remote host (a.k.a. “time to first byte”, or “TTFB”). float|
+|http_req_receiving |Trend| Time spent receiving response data from the remote host. float|
+|http_req_duration |Trend| Total time for the request. It’s equal to http_req_sending + http_req_waiting + http_req_receiving (i.e. how long did the remote server take to process the request and respond, without the initial DNS lookup/connection times). float|
+|http_req_failed |Rate| The rate of failed requests according to setResponseCallback.|
 
-> 指标分类分别为：计数器（Counter）、计量器（Gauges）、比率（Rates）、趋势（Trends）
+##### Other built-in metrics
 
-##### 其他内置指标
+In addition to the standard built-in metrics and HTTP-specific built-in metrics, K6 built-in metrics also have other built-in metrics:
 
-K6 内置指标除了标准内置指标和 HTTP 特定的内置指标外，还有其他内置指标：
+- Browser metrics : <https://grafana.com/docs/k6/latest/using-k6/metrics/reference/#browser>
+- Built-in WebSocket metrics : <https://grafana.com/docs/k6/latest/using-k6/metrics/reference/#websockets>
+- Built-in gRPC metrics : <https://grafana.com/docs/k6/latest/using-k6/metrics/reference/#grpc>
 
-- Browser metrics 浏览器指标：<https://grafana.com/docs/k6/latest/using-k6/metrics/reference/#browser>
-- Built-in WebSocket metrics 内置 WebSocket 指标：<https://grafana.com/docs/k6/latest/using-k6/metrics/reference/#websockets>
-- Built-in gRPC metrics 内置 gRPC 指标：<https://grafana.com/docs/k6/latest/using-k6/metrics/reference/#grpc>
+#### custom metrics
 
-#### 自定义指标
+Besides the built-in metrics, you can create custom metrics. For example, you can compute a metric for your business logic, or use the Response.timings object to create a metric for a specific set of endpoints.
 
-除了系统内建的指标之外，您还可以创建自定义指标。例如，您可以计算与业务逻辑相关的指标，或者利用 Response.timings 对象为特定的一组端点创建指标。
+Each metric type has a constructor to create a custom metric. The constructor creates a metric object of the declared type. Each type has an add method to take metric measurements.
 
-每种指标类型都有一个构造函数，用于生成自定义指标。该构造函数会生成一个声明类型的指标对象。每种类型都有一个 add 方法，用于记录指标测量值。
+> Note: Custom metrics must be created in the init context. This limits memory and ensures that K6 can verify that all thresholds evaluate the defined metrics.
 
-> 注意：必须在 init 上下文中创建自定义指标。这会限制内存并确保 K6 可以验证所有阈值是否评估了定义的指标。
+##### custom metrics demo
 
-##### 自定义指标 demo 示例
+The following example demonstrates how to create a custom trend metrics for wait time:
 
-以下示例演示如何创建等待时间的自定义趋势指标：
+> The demo_custom_metrics.js file in the project file already contains this demo example, which can be run directly to view the results.
 
-> 项目文件中的 demo_custom_metrics.js 文件已经包含了这个 demo 示例，可以直接运行查看结果。
-
-###### 1.从导入 k6/metrics 模块引入 Trend 构造函数
+###### 1.Import the Trend constructor from the k6/metrics module
 
 ```javascript
 import { Trend } from 'k6/metrics';
 ```
 
-> 等待时间趋势指标属于趋势（Trends）指标，所以需要从 k6/metrics 模块引入 Trend 构造函数。
+> > The waiting time trend metrics is a Trends metrics, so the Trend constructor needs to be introduced from the k6/metrics module.
 
-###### 2.在 init 上下文中构造一个新的自定义度量 Trend 对象
+###### 2.Constructs a new custom metric Trend object in the init context
 
 ```javascript
 const myTrend = new Trend('waiting_time');
 ```
 
-> 在 init 上下文中构造一个新的自定义度量 Trend 对象，脚本中的对象为 myTrend，其指标在结果输出中显示为 `waiting_time`。
+> Construct a new custom metric Trend object in the init context, the object in the script is myTrend, and its metric is displayed as `waiting_time` in the resulting output.
 
-###### 3.在脚本中使用 add 方法记录指标测量值
+###### 3.Use the add method in a script to record metric measurements
 
 ```javascript
 export default function() {
@@ -450,9 +446,9 @@ export default function() {
 }
 ```
 
-> 在脚本中使用 add 方法记录指标测量值，这里使用了 `res.timings.waiting`，即等待时间。
+> Use the add method in the script to record the metric measurement values. Here, `res.timings.waiting` is used, which is the waiting time.
 
-###### 4.demo_custom_metrics.js 自定义指标完整代码
+###### 4.demo_custom_metrics.js Complete code of custom metric
 
 ```javascript
 import http from 'k6/http';
@@ -467,44 +463,43 @@ export default function () {
 }
 ```
 
-###### 5.运行 demo_custom_metrics.js 并查看自动化趋势指标
+###### 5.Run demo_custom_metrics.js and view automated trending metrics
 
 ```bash
 k6 run demo_custom_metrics.js
 ```
 
-运行结果如下：
+The running results are as follows:
 
 ![ ](https://cdn.jsdelivr.net/gh/naodeng/blogimg@master/uPic/4tbqVc.png)
 
-> 可以看到，自定义指标 `waiting_time` 已经在结果输出中显示出来了。
+> As you can see, the custom metric `waiting_time` has been displayed in the result output.
 
-更多关于自定义指标的内容，请参考官方文档：[https://k6.io/docs/using-k6/metrics/#custom-metrics](https://k6.io/docs/using-k6/metrics/#custom-metrics)
+For more information about custom metrics, please refer to the official documentation: [https://k6.io/docs/using-k6/metrics/#custom-metrics](https://k6.io/docs/using-k6/metrics/#custom-metrics)
 
-### Checks 检查
+### Checks
 
-> 这里也可以理解为断言，即对测试结果进行验证。
+> This can also be understood as assertions, which verify the test results.
 
-检查用来检验不同测试中的具体测试条件是否正确相应，和我们常规在做其他类型测试时也会对测试结果进行验证，以确保系统是否以期望的内容作出响应。
+Checks are used to verify whether specific test conditions in different tests are correctly responded to, similar to how we conventionally verify test results in other types of tests to ensure that the system responds as expected.
 
-例如，一个验证可以确保 POST 请求的响应状态为 201，或者响应体的大小是否符合预期。
+For example, a check can ensure that the response status of a POST request is 201, or that the size of the response body matches expectations.
 
-检查类似于许多测试框架中称为断言的概念，但是**K6 在验证失败并不会中止测试或以失败状态结束。相反，k6 会在测试继续运行时追踪失败验证的比率**。
+Checks are similar to the concept of assertions in many testing frameworks, but **K6 does not abort the test or end it in a failed state when verifications fail. Instead, k6 tracks the failure rate of failed verifications as the test continues to run**.
 
-> 每个检查都创建一个速率指标。要使检查中止或导致测试失败，可以将其与阈值结合使用。
+> Each check creates a rate metric. To make a check abort or cause the test to fail, it can be combined with thresholds.
 
-下面会介绍如何使用不同类型的检查，以及如何在测试结果中查看检查结果。
+Below, we will introduce how to use different types of checks and how to view check results in test results.
 
-#### 1.检查 HTTP 响应状态
+#### 1. Check HTTP Response Status
 
-K6 的检查非常适用于与 HTTP 请求相关的响应断言。
+K6 checks are particularly useful for response assertions related to HTTP requests.
 
-示例，以下代码片段来检查 HTTP 响应代码为 200：
+For example, the following code snippet checks that the HTTP response code is 200:
 
 ```javascript
 import { check } from 'k6';
 import http from 'k6/http';
-
 
 export default function () {
   const res = http.get('https://httpbin.test.k6.io');
@@ -514,24 +509,23 @@ export default function () {
 }
 ```
 
-运行该脚本，可以看到如下结果：
+Running this script, you can see the following results:
 
 ![ ](https://cdn.jsdelivr.net/gh/naodeng/blogimg@master/uPic/aTXnpy.png)
 
-> 当脚本包含检查时，摘要报告会显示通过了多少测试检查。
+> When a script contains checks, the summary report shows how many test checks have passed.
 
-在此示例中，请注意检查“HTTP response code is status 200”在调用时是 100% 成功的。
+In this example, note that the check "HTTP response code is status 200" is 100% successful when called.
 
-#### 2.检查 HTTP 响应体
+#### 2. Check HTTP Response Body
 
-除了检查 HTTP 响应状态外，还可以检查 HTTP 响应体。
+In addition to checking the HTTP response status, you can also check the HTTP response body.
 
-示例，以下代码片段来检查 HTTP 响应体大小为 9591 bytes：
+For example, the following code snippet checks that the HTTP response body size is 9591 bytes:
 
 ```javascript
 import { check } from 'k6';
 import http from 'k6/http';
-
 
 export default function () {
   const res = http.get('https://httpbin.test.k6.io');
@@ -541,22 +535,21 @@ export default function () {
 }
 ```
 
-运行该脚本，可以看到如下结果：
+Running this script, you can see the following results:
 
 ![ ](https://cdn.jsdelivr.net/gh/naodeng/blogimg@master/uPic/AmbL0E.png)
 
-> 当脚本包含检查时，摘要报告会显示通过了多少测试检查。
+> When a script contains checks, the summary report shows how many test checks have passed.
 
-在此示例中，请注意检查“HTTP response body size is 9591 bytes”在调用时是 100% 成功的。
+In this example, note that the check "HTTP response body size is 9591 bytes" is 100% successful when called.
 
-#### 3.添加多个检查
+#### 3. Adding Multiple Checks
 
-有时候我们在一个测试脚本中需要添加多个检查，那可以直接在单​​个 check() 语句中添加多个检查，如下面脚本所示：
+Sometimes, multiple checks need to be added in a single test script. You can directly add multiple checks in a single check() statement, as shown in the script below:
 
 ```javascript
 import { check } from 'k6';
 import http from 'k6/http';
-
 
 export default function () {
   const res = http.get('https://httpbin.test.k6.io');
@@ -567,15 +560,15 @@ export default function () {
 }
 ```
 
-运行该脚本，可以看到如下结果：
+Running this script, you can see the following results:
 
 ![ ](https://cdn.jsdelivr.net/gh/naodeng/blogimg@master/uPic/5yJyBw.png)
 
-在此示例中，两个检查都是正常通过的（调用是 100% 成功的）。
+In this example, both checks pass successfully (the call is 100% successful).
 
-> 注意：当检查失败时，脚本将继续成功执行，并且不会返回“失败”退出状态。如果您需要根据检查结果使整个测试失败，则必须将检查与阈值结合起来。这在特定环境中特别有用，例如将 k6 集成到 CI 管道中或在安排性能测试时接收警报。
+> Note: When a check fails, the script will continue to execute successfully and will not return a "failed" exit status. If you need to fail the entire test based on check results, you must combine checks with thresholds. This is particularly useful in specific environments, such as integrating k6 into a CI pipeline or receiving alerts when scheduling performance tests.
 
-### Thresholds 阈值
+### Thresholds
 
 ## References
 
