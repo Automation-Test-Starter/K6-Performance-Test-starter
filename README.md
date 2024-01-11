@@ -32,7 +32,7 @@ A quick-start introductory document on performance testing with K6.
       - [Supported HTTP Methods](#supported-http-methods)
       - [HTTP Request Tags](#http-request-tags)
     - [Metrics](#metrics)
-      - [#### K6 Built-in Metrics](#-k6-built-in-metrics)
+      - [K6 Built-in Metrics](#k6-built-in-metrics)
         - [Standard Built-in Metrics](#standard-built-in-metrics)
         - [HTTP-specific built-in metrics](#http-specific-built-in-metrics)
         - [Other built-in metrics](#other-built-in-metrics)
@@ -360,7 +360,7 @@ For subsequent filtering of metrics, labels and groupings can be used, allowing 
 
 > The test results output file can export metrics in a variety of summary and fine-grained formats. For more information, refer to the results output documentation. (This section will be covered in more detail in the later part of the test results output documentation.)
 
-#### #### K6 Built-in Metrics
+#### K6 Built-in Metrics
 
 Every k6 test execution emits both built-in and custom metrics. Each supported protocol also has its specific metrics.
 
