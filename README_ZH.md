@@ -43,6 +43,11 @@
           - [3.在脚本中使用 add 方法记录指标测量值](#3在脚本中使用-add-方法记录指标测量值)
           - [4.demo\_custom\_metrics.js 自定义指标完整代码](#4demo_custom_metricsjs-自定义指标完整代码)
           - [5.运行 demo\_custom\_metrics.js 并查看自动化趋势指标](#5运行-demo_custom_metricsjs-并查看自动化趋势指标)
+    - [Checks 检查](#checks-检查)
+      - [1.检查 HTTP 响应状态](#1检查-http-响应状态)
+      - [2.检查 HTTP 响应体](#2检查-http-响应体)
+      - [3.添加多个检查](#3添加多个检查)
+    - [Thresholds 阈值](#thresholds-阈值)
   - [参考资料](#参考资料)
 
 ## 什么是 K6
@@ -475,6 +480,102 @@ k6 run demo_custom_metrics.js
 > 可以看到，自定义指标 `waiting_time` 已经在结果输出中显示出来了。
 
 更多关于自定义指标的内容，请参考官方文档：[https://k6.io/docs/using-k6/metrics/#custom-metrics](https://k6.io/docs/using-k6/metrics/#custom-metrics)
+
+### Checks 检查
+
+> 这里也可以理解为断言，即对测试结果进行验证。
+
+检查用来检验不同测试中的具体测试条件是否正确相应，和我们常规在做其他类型测试时也会对测试结果进行验证，以确保系统是否以期望的内容作出响应。
+
+例如，一个验证可以确保 POST 请求的响应状态为 201，或者响应体的大小是否符合预期。
+
+检查类似于许多测试框架中称为断言的概念，但是**K6 在验证失败并不会中止测试或以失败状态结束。相反，k6 会在测试继续运行时追踪失败验证的比率**。
+
+> 每个检查都创建一个速率指标。要使检查中止或导致测试失败，可以将其与阈值结合使用。
+
+下面会介绍如何使用不同类型的检查，以及如何在测试结果中查看检查结果。
+
+#### 1.检查 HTTP 响应状态
+
+K6 的检查非常适用于与 HTTP 请求相关的响应断言。
+
+示例，以下代码片段来检查 HTTP 响应代码为 200：
+
+```javascript
+import { check } from 'k6';
+import http from 'k6/http';
+
+
+export default function () {
+  const res = http.get('https://httpbin.test.k6.io');
+  check(res, {
+    'HTTP response code is status 200': (r) => r.status === 200,
+  });
+}
+```
+
+运行该脚本，可以看到如下结果：
+
+![ ](https://cdn.jsdelivr.net/gh/naodeng/blogimg@master/uPic/aTXnpy.png)
+
+> 当脚本包含检查时，摘要报告会显示通过了多少测试检查。
+
+在此示例中，请注意检查“HTTP response code is status 200”在调用时是 100% 成功的。
+
+#### 2.检查 HTTP 响应体
+
+除了检查 HTTP 响应状态外，还可以检查 HTTP 响应体。
+
+示例，以下代码片段来检查 HTTP 响应体大小为 9591 bytes：
+
+```javascript
+import { check } from 'k6';
+import http from 'k6/http';
+
+
+export default function () {
+  const res = http.get('https://httpbin.test.k6.io');
+  check(res, {
+    'HTTP response body size is 9591 bytes': (r) => r.body.length == 9591,
+  });
+}
+```
+
+运行该脚本，可以看到如下结果：
+
+![ ](https://cdn.jsdelivr.net/gh/naodeng/blogimg@master/uPic/AmbL0E.png)
+
+> 当脚本包含检查时，摘要报告会显示通过了多少测试检查。
+
+在此示例中，请注意检查“HTTP response body size is 9591 bytes”在调用时是 100% 成功的。
+
+#### 3.添加多个检查
+
+有时候我们在一个测试脚本中需要添加多个检查，那可以直接在单​​个 check() 语句中添加多个检查，如下面脚本所示：
+
+```javascript
+import { check } from 'k6';
+import http from 'k6/http';
+
+
+export default function () {
+  const res = http.get('https://httpbin.test.k6.io');
+  check(res, {
+    'HTTP response code is status 200': (r) => r.status === 200,
+    'HTTP response body size is 9591 bytes': (r) => r.body.length == 9591,
+  });
+}
+```
+
+运行该脚本，可以看到如下结果：
+
+![ ](https://cdn.jsdelivr.net/gh/naodeng/blogimg@master/uPic/5yJyBw.png)
+
+在此示例中，两个检查都是正常通过的（调用是 100% 成功的）。
+
+> 注意：当检查失败时，脚本将继续成功执行，并且不会返回“失败”退出状态。如果您需要根据检查结果使整个测试失败，则必须将检查与阈值结合起来。这在特定环境中特别有用，例如将 k6 集成到 CI 管道中或在安排性能测试时接收警报。
+
+### Thresholds 阈值
 
 ## 参考资料
 
